@@ -1,7 +1,6 @@
-from app.core.config import BASE_DIR
+from fastapi import FastAPI
+from app.api.health import router as health_router
 
-def main():
-    print(BASE_DIR)
+app = FastAPI(title="Smart PDF Research Assistant")
 
-if __name__ == "__main__":
-    main()
+app.include_router(health_router)
