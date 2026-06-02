@@ -1,0 +1,35 @@
+from pathlib import Path
+from fastapi import HTTPException
+from app.core.config import UPLOAD_DIR
+
+class PDFService:
+    MAX_FILE_SIZE_MB = 10
+
+    def validate_pdf(self, filename: str | None, content: bytes) -> None:
+        if not filename:
+            raise HTTPException(
+                status_code=400,
+                detail="Filename is required",
+            )
+        
+        if not filename.lower().endswith(".pdf"):
+            raise HTTPException(
+                status_code=400,
+                detail="Only PDF files are allowed",
+            )
+        
+        if len(content) > self.MAX_FILE_SIZE_MB * 1024 * 1024:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Maximum file size is {self.MAX_FILE_SIZE_MB} MB",
+            )
+
+    def save_pdf(self, filename: str, content: bytes) -> str:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+        file_path = UPLOAD_DIR / filename
+
+        with open(file_path, "wb") as file:
+            file.write(content)
+
+        return filename
