@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
 class UploadResponse(BaseModel):
-    filename: str
+    original_filename: str
+    stored_filename: str
     message: str

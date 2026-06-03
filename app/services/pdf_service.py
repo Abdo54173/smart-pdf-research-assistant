@@ -1,5 +1,6 @@
 from pathlib import Path
 from fastapi import HTTPException
+from uuid import uuid4
 from app.core.config import UPLOAD_DIR
 
 class PDFService:
@@ -23,13 +24,18 @@ class PDFService:
                 status_code=400,
                 detail=f"Maximum file size is {self.MAX_FILE_SIZE_MB} MB",
             )
+    
+    def generate_unique_filename(self, filename: str) -> str:
+        return f"{uuid4()}-{filename}"
 
     def save_pdf(self, filename: str, content: bytes) -> str:
         UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-        file_path = UPLOAD_DIR / filename
+        unique_filename =self.generate_unique_filename(filename)
+
+        file_path = UPLOAD_DIR / unique_filename
 
         with open(file_path, "wb") as file:
             file.write(content)
 
-        return filename
+        return unique_filename

@@ -23,12 +23,13 @@ async def upload_pdf(
         content=content,
     )
 
-    filename =pdf_service.save_pdf(
+    stored_filename = pdf_service.save_pdf(
         filename=file.filename,
         content=content,
     )
 
     return UploadResponse(
-        filename=filename,
-        message="PDF uploaded successfully"
+        original_filename=file.filename,
+        stored_filename=stored_filename,
+        message="PDF uploaded successfully",
     )
