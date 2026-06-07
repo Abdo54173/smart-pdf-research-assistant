@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     DEFAULT_CHUNK_SIZE: int = 500
     DEFAULT_CHUNK_OVERLAP: int = 50
     EMBEDDING_MODEL_NAME: str
+    CHROMA_COLLECTION_NAME: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
