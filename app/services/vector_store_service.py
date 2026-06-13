@@ -47,3 +47,20 @@ class VectorStoreService:
             ],
         )
         logger.info(f"Successfully stored {len(chunks)} chunks for file_id: {file_id}")
+
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 5,
+    ) -> dict:
+        
+        return self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            include=[
+                "documents",
+                "metadatas",
+                "distances",
+            ],
+        )
+    
