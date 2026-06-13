@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     DEFAULT_CHUNK_OVERLAP: int = 50
     EMBEDDING_MODEL_NAME: str
     CHROMA_COLLECTION_NAME: str
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL_NAME: str = "llama-3.1-8b-instant"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
