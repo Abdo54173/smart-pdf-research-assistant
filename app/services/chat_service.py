@@ -1,7 +1,7 @@
-from groq import Groq
 from app.core.config import settings
 from app.core.prompts import SYSTEM_PROMPT, build_rag_prompt
 from app.services.retriever_service import RetrieverService
+from app.llms.factory import LLMFactory
 
 class ChatService:
 
@@ -11,10 +11,7 @@ class ChatService:
     ) -> None:
 
         self.retriever_service = retriever_service
-
-        self.client = Groq(
-            api_key=settings.GROQ_API_KEY
-        )
+        self.llm = LLMFactory.create()
 
     def ask(
         self,
@@ -49,19 +46,9 @@ class ChatService:
         )
         
         try:
-            response = self.client.chat.completions.create(
-                model=settings.GROQ_MODEL_NAME,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": SYSTEM_PROMPT,
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    },
-                ],
-                temperature=0,
+            answer = self.llm.generate(
+                system_prompt=SYSTEM_PROMPT,
+                user_prompt=prompt,
             )
         except Exception as e:
             raise RuntimeError(
@@ -69,6 +56,6 @@ class ChatService:
             )
 
         return {
-            "answer": response.choices[0].message.content,
+            "answer": answer,
             "sources": metadatas,
         }

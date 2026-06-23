@@ -11,10 +11,17 @@ class Settings(BaseSettings):
     
     DEFAULT_CHUNK_SIZE: int = 500
     DEFAULT_CHUNK_OVERLAP: int = 50
+
     EMBEDDING_MODEL_NAME: str
     CHROMA_COLLECTION_NAME: str
+
+    LLM_PROVIDER: str = "groq"
+
     GROQ_API_KEY: str = ""
     GROQ_MODEL_NAME: str = "llama-3.1-8b-instant"
+
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL_NAME:str = "gpt-4.1-mini"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
