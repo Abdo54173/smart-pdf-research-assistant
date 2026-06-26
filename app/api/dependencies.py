@@ -1,6 +1,5 @@
 from app.services.pdf_service import PDFService
 from app.services.chat_service import ChatService
-from app.services.chunking_service import ChunkingService
 from app.services.embedding_service import EmbeddingService
 from app.services.retriever_service import RetrieverService
 from app.services.vector_store_service import VectorStoreService
