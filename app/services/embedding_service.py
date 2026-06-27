@@ -1,5 +1,6 @@
 import logging
-from sentence_transformers import SentenceTransformer
+
+import cohere
 
 from app.core.config import settings
 
@@ -7,32 +8,58 @@ logger = logging.getLogger(__name__)
 
 class EmbeddingService:
 
-    def __init__(
-        self,
-        model_name: str = settings.EMBEDDING_MODEL_NAME,
-    ) -> None:
-        
-        logger.info(f"Loading embedding model: {model_name}")
+    def __init__(self) -> None:
 
         try:
-            self.model = SentenceTransformer(model_name)
-            logger.info("Embedding model loaded successfully.")
-        except Exception as e:
-            logger.error(f"Failed to load embedding model {model_name}: {e}")
-            raise RuntimeError(f"Could not initialize EmbeddingService: {e}")
+            self.client = cohere.Client(
+                api_key=settings.COHERE_API_KEY
+            )
 
-    def embed_text(self, text: str) -> list[float]:
+            self.model_name = settings.EMBEDDING_MODEL_NAME
+
+            logger.info(
+                f"Cohere embedding model loaded: {self.model_name}"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize Cohere client: {e}"
+            )
+
+            raise RuntimeError(
+                f"Could not initialize EmbeddingService: {e}"
+            )
+
+    def embed_text(
+        self,
+        text: str,
+    ) -> list[float]:
+
         if not text or not text.strip():
-            raise ValueError("Cannot embed empty or whitespace-only text.")
-        
-        return self.model.encode(text, convert_to_numpy=True,).tolist()
+            raise ValueError(
+                "Cannot embed empty text."
+            )
+
+        response = self.client.embed(
+            texts=[text],
+            model=self.model_name,
+            input_type="search_query",
+        )
+
+        return response.embeddings[0]
 
     def embed_texts(
         self,
         texts: list[str],
     ) -> list[list[float]]:
+
         if not texts:
             return []
-        
-        embeddings = self.model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
-        return [emb.tolist() for emb in embeddings]
+
+        response = self.client.embed(
+            texts=texts,
+            model=self.model_name,
+            input_type="search_document",
+        )
+
+        return response.embeddings

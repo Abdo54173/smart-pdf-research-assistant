@@ -12,8 +12,10 @@ class Settings(BaseSettings):
     DEFAULT_CHUNK_SIZE: int = 500
     DEFAULT_CHUNK_OVERLAP: int = 50
 
-    EMBEDDING_MODEL_NAME: str
+    EMBEDDING_MODEL_NAME: str = "embed-english-v3.0"
     CHROMA_COLLECTION_NAME: str
+
+    COHERE_API_KEY: str = ""
 
     LLM_PROVIDER: str = "groq"
 
