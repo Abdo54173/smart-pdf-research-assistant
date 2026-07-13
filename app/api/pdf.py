@@ -1,18 +1,21 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
+    get_db,
     get_document_processing_service,
+    get_document_repository,
+    get_document_service,
     get_pdf_service,
     get_vector_store_service,
 )
 from app.core.config import UPLOAD_DIR
 from app.models.pdf_models import UploadResponse
-from app.services.document_processing_service import (
-    DocumentProcessingService,
-)
+from app.services.document_processing_service import DocumentProcessingService
+from app.services.document_service import DocumentService
 from app.services.pdf_service import PDFService
 from app.services.vector_store_service import VectorStoreService
 
@@ -25,6 +28,7 @@ router = APIRouter(
 @router.post("/upload", response_model=UploadResponse)
 async def upload_pdf(
     file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
     pdf_service: Annotated[
         PDFService,
         Depends(get_pdf_service),
@@ -52,16 +56,33 @@ async def upload_pdf(
 
     file_path = Path(UPLOAD_DIR / stored_filename)
 
-    processed_document = (
-        document_processing_service.process_document(
-            file_path=file_path,
-        )
+    document_service = DocumentService(
+        get_document_repository(db),
     )
 
-    vector_store_service.add_chunks(
-        file_id=stored_filename,
-        chunks=processed_document.chunks,
+    document = await document_service.create_document(
+        filename=file.filename,
+        file_path=str(file_path),
     )
+    
+    try:
+        processed_document = (
+            document_processing_service.process_document(
+                file_path=file_path,
+            )
+        )
+
+        vector_store_service.add_chunks(
+            file_id=stored_filename,
+            chunks=processed_document.chunks,
+        )
+
+    except Exception:
+        await document_service.delete_document(document.id)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to process document.",
+        )
 
     return UploadResponse(
         original_filename=file.filename,

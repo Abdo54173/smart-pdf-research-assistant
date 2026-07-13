@@ -14,7 +14,7 @@ class VectorStoreService:
     
     def add_chunks(
         self,
-        file_id: str,
+        document_id: str,
         chunks: list[dict]
     ) -> None:
         
@@ -25,7 +25,7 @@ class VectorStoreService:
         self.collection.add(
             
             ids=[
-                f"{file_id}_chunk_{chunk['chunk_id']}"
+                f"{document_id}_chunk_{chunk['chunk_id']}"
                 for chunk in chunks
             ],
             documents=[
@@ -39,18 +39,18 @@ class VectorStoreService:
             
             metadatas=[
                 {
-                    "file_id": file_id,
+                    "document_id": document_id,
                     "page": chunk["page"],
                     "tokens_count": chunk["tokens_count"],
                 }
                 for chunk in chunks
             ],
         )
-        logger.info(f"Successfully stored {len(chunks)} chunks for file_id: {file_id}")
+        logger.info(f"Successfully stored {len(chunks)} chunks for document_id: {document_id}")
 
     def search(
         self,
-        file_id: str, 
+        document_id: str, 
         query_embedding: list[float],
         top_k: int = 5,
     ) -> dict:
@@ -58,7 +58,7 @@ class VectorStoreService:
         return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
-            where={"file_id": file_id}, 
+            where={"document_id": document_id}, 
             include=[
                 "documents",
                 "metadatas",

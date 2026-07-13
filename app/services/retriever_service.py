@@ -14,7 +14,7 @@ class RetrieverService:
 
     def retrieve(
         self,
-        file_id: str,
+        document_id: str,
         query: str,
         top_k: int = 5,
     ) -> dict:
@@ -24,7 +24,7 @@ class RetrieverService:
         )
 
         return self.vector_store_service.search(
-            file_id=file_id,
+            document_id=document_id,
             query_embedding=query_embedding,
             top_k=top_k,
         )

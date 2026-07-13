@@ -15,7 +15,7 @@ class ChatService:
 
     def ask(
         self,
-        file_id: str,
+        document_id: str,
         question: str,
         top_k: int = 5,
     ) -> dict:
@@ -24,7 +24,7 @@ class ChatService:
             raise ValueError("Question cannot be empty.")
 
         retrieval_result = self.retriever_service.retrieve(
-            file_id=file_id,
+            document_id=document_id,
             query=question,
             top_k=top_k,
         )

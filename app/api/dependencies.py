@@ -1,45 +1,36 @@
-from app.services.chat_service import ChatService
-from app.services.chunking_service import ChunkingService
-from app.services.document_processing_service import (
-    DocumentProcessingService,
-)
-from app.services.embedding_service import EmbeddingService
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database.session import AsyncSessionLocal
+from app.repositories.document_repository import DocumentRepository
+from app.services.document_service import DocumentService
 from app.services.pdf_service import PDFService
 from app.services.pdf_parser_service import PDFParserService
-from app.services.retriever_service import RetrieverService
+from app.services.chunking_service import ChunkingService
+from app.services.embedding_service import EmbeddingService
 from app.services.vector_store_service import VectorStoreService
+from app.services.document_processing_service import DocumentProcessingService
 
-embedding_service = EmbeddingService()
-pdf_parser_service = PDFParserService()
-chunking_service = ChunkingService()
-vector_store_service = VectorStoreService()
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
 
-document_processing_service = DocumentProcessingService(
-    pdf_parser_service=pdf_parser_service,
-    chunking_service=chunking_service,
-    embedding_service=embedding_service,
-)
+def get_document_repository(
+    db: AsyncSession,
+) -> DocumentRepository:
+    return DocumentRepository(db)
 
-retriever_service = RetrieverService(
-    embedding_service=embedding_service,
-    vector_store_service=vector_store_service,
-)
+def get_document_service(
+    document_repository: DocumentRepository,
+) -> DocumentService:
+    return DocumentService(document_repository)
 
-chat_service = ChatService(
-    retriever_service=retriever_service,
-)
+def get_document_processing_service() -> DocumentProcessingService:
+    return DocumentProcessingService(
+        pdf_parser_service=PDFParserService(),
+        chunking_service=ChunkingService(),
+        embedding_service=EmbeddingService(),
+        vector_store_service=VectorStoreService(),
+    )
 
 def get_pdf_service() -> PDFService:
     return PDFService()
-
-
-def get_document_processing_service() -> DocumentProcessingService:
-    return document_processing_service
-
-
-def get_vector_store_service() -> VectorStoreService:
-    return vector_store_service
-
-
-def get_chat_service() -> ChatService:
-    return chat_service
