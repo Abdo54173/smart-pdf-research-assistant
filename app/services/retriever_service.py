@@ -14,17 +14,15 @@ class RetrieverService:
 
     def retrieve(
         self,
-        document_id: str,
+        document_ids: list[str],
         query: str,
         top_k: int = 5,
     ) -> dict:
 
-        query_embedding = self.embedding_service.embed_text(
-            query
-        )
+        query_embedding = self.embedding_service.embed_text(query)
 
         return self.vector_store_service.search(
-            document_id=document_id,
+            document_id=document_ids,
             query_embedding=query_embedding,
             top_k=top_k,
         )

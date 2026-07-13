@@ -2,7 +2,8 @@ from pydantic import BaseModel, Field
 
 
 class ChatRequest(BaseModel):
-    document_id: str = Field(..., min_length=1)
+    conversation_id: str = Field(..., min_length=1)
+    document_ids: list[str]
     question: str = Field(..., min_length=1)
 
 

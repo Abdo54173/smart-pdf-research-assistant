@@ -50,15 +50,19 @@ class VectorStoreService:
 
     def search(
         self,
-        document_id: str, 
+        document_ids: list[str],
         query_embedding: list[float],
         top_k: int = 5,
     ) -> dict:
-        
+
         return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
-            where={"document_id": document_id}, 
+            where={
+                "document_id": {
+                    "$in": document_ids,
+                }
+            },
             include=[
                 "documents",
                 "metadatas",
