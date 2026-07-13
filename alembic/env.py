@@ -9,6 +9,9 @@ from app.core.config import settings
 from app.database.base import Base
 
 from app.entities.document import Document
+from app.entities.conversation import Conversation
+from app.entities.message import Message
+from app.entities.conversation_document import ConversationDocument
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

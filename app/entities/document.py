@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
 
+from sqlalchemy.orm import relationship
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -31,3 +33,9 @@ class Document(Base):
         server_default=func.now(),
         nullable=False,
     )
+
+    conversations = relationship(
+    "Conversation",
+    secondary="conversation_documents",
+    back_populates="documents",
+)
