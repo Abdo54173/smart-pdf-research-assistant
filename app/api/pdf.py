@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Annotated
+import traceback
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,18 +74,22 @@ async def upload_pdf(
         )
 
         vector_store_service.add_chunks(
-            file_id=stored_filename,
+            document_id=str(document.id),
             chunks=processed_document.chunks,
         )
 
-    except Exception:
+    except Exception as e:
+        traceback.print_exc()
+
         await document_service.delete_document(document.id)
+
         raise HTTPException(
             status_code=500,
-            detail="Failed to process document.",
+            detail=str(e),
         )
 
     return UploadResponse(
+        document_id=document.id,
         original_filename=file.filename,
         stored_filename=stored_filename,
         message="PDF uploaded and indexed successfully",

@@ -12,22 +12,12 @@ class GroqLLM(BaseLLM):
     
     def generate(
         self,
-        system_prompt: str,
-        user_prompt: str,
+        messages: list[dict],
     ) -> str:
 
         response = self.client.chat.completions.create(
             model=settings.GROQ_MODEL_NAME,
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": user_prompt,
-                },
-            ],
+            messages=messages,
             temperature=0,
         )
 

@@ -1,6 +1,7 @@
 from app.services.embedding_service import EmbeddingService
 from app.services.vector_store_service import VectorStoreService
 
+
 class RetrieverService:
 
     def __init__(
@@ -8,7 +9,6 @@ class RetrieverService:
         embedding_service: EmbeddingService,
         vector_store_service: VectorStoreService,
     ) -> None:
-
         self.embedding_service = embedding_service
         self.vector_store_service = vector_store_service
 
@@ -22,7 +22,7 @@ class RetrieverService:
         query_embedding = self.embedding_service.embed_text(query)
 
         return self.vector_store_service.search(
-            document_id=document_ids,
+            document_ids=document_ids,
             query_embedding=query_embedding,
             top_k=top_k,
         )

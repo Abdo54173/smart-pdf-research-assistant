@@ -1,38 +1,59 @@
-from app.core.config import settings
 from app.core.prompts import SYSTEM_PROMPT, build_rag_prompt
 from app.services.retriever_service import RetrieverService
 from app.llms.factory import LLMFactory
+from app.services.conversation_service import ConversationService
 
 class ChatService:
 
     def __init__(
         self,
         retriever_service: RetrieverService,
+        conversation_service: ConversationService,
     ) -> None:
 
         self.retriever_service = retriever_service
+        self.conversation_service = conversation_service
         self.llm = LLMFactory.create()
 
-    def ask(
+    async def ask(
         self,
-        document_id: str,
+        conversation_id: str,
         question: str,
         top_k: int = 5,
     ) -> dict:
         
         if not question.strip():
             raise ValueError("Question cannot be empty.")
+        
+        history = await self.conversation_service.get_history(
+            conversation_id
+        )
+
+        history_messages = [
+            {
+                "role": message.role,
+                "content": message.content,
+            }
+            for message in history
+        ]
+
+        document_ids = await self.conversation_service.get_document_ids(
+            conversation_id
+        )
 
         retrieval_result = self.retriever_service.retrieve(
-            document_id=document_id,
+            document_ids=document_ids,
             query=question,
             top_k=top_k,
         )
 
-        if not retrieval_result.get("documents") or not retrieval_result["documents"][0]:
+        if (
+            not retrieval_result.get("documents")
+            or not retrieval_result["documents"][0]
+        ):
             return {
                 "answer": "I could not find that information in the uploaded documents.",
-                "sources": []
+                "sources": [],
             }
 
         documents = retrieval_result["documents"][0]
@@ -40,20 +61,40 @@ class ChatService:
 
         context = "\n\n".join(documents)
 
-        prompt = build_rag_prompt(
-            question=question,
-            context=context,
+        await self.conversation_service.add_message(
+            conversation_id=conversation_id,
+            role="user",
+            content=question,
         )
-        
+
+        messages = [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            },
+            *history_messages,
+            {
+                "role": "user",
+                "content": build_rag_prompt(
+                    question=question,
+                    context=context,
+                ),
+            },
+        ]
+
         try:
-            answer = self.llm.generate(
-                system_prompt=SYSTEM_PROMPT,
-                user_prompt=prompt,
-            )
+            answer = self.llm.generate(messages)
+
         except Exception as e:
             raise RuntimeError(
                 f"Failed to generate answer: {e}"
             )
+
+        await self.conversation_service.add_message(
+            conversation_id=conversation_id,
+            role="assistant",
+            content=answer,
+        )
 
         return {
             "answer": answer,

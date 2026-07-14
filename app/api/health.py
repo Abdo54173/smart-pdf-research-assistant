@@ -1,16 +1,16 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
-from app.database.session import SessionLocal
+from app.database.session import AsyncSessionLocal
 
 router = APIRouter(prefix="/health", tags=["Health"])
 
 
 @router.get("")
-def health_check():
+async def health_check():
     try:
-        with SessionLocal() as session:
-            session.execute(text("SELECT 1"))
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
 
         return {
             "status": "healthy",

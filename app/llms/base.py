@@ -5,7 +5,6 @@ class BaseLLM(ABC):
     @abstractmethod
     def generate(
         self,
-        system_prompt: str,
-        user_prompt: str,
+        messages: list[dict],
     ) -> str:
         pass 

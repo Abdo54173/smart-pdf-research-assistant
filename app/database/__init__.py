@@ -1,8 +1,8 @@
 from .base import Base
-from .session import SessionLocal, engine
+from .session import AsyncSessionLocal, engine
 
 __all__ = [
     "Base",
-    "SessionLocal",
+    "AsyncSessionLocal",
     "engine",
 ]

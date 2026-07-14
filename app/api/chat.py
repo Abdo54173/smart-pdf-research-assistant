@@ -1,18 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.dependencies import get_chat_service
-from app.models.chat_models import (
-    ChatRequest,
-    ChatResponse,
-)
+from app.models.chat_models import ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
 
 router = APIRouter(
     prefix="/chat",
     tags=["Chat"],
 )
+
 
 @router.post(
     "/ask",
@@ -24,24 +22,17 @@ async def ask_question(
         ChatService,
         Depends(get_chat_service),
     ],
-) -> ChatResponse:
-    
+):
     try:
-        result = chat_service.ask(
-            file_id=request.file_id,
+        result = await chat_service.ask(
+            conversation_id=request.conversation_id,
             question=request.question,
         )
 
         return ChatResponse(**result)
-    
-    except ValueError as exc:
+
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(exc),
-        )
-    
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
+            status_code=400,
+            detail=str(e),
         )
