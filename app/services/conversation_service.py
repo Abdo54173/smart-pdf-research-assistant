@@ -3,6 +3,7 @@ from uuid import uuid4
 from app.entities.conversation import Conversation
 from app.entities.message import Message
 from app.repositories.conversation_repository import ConversationRepository
+from app.repositories.ConversationDocumentRepository import ConversationDocumentRepository
 from app.repositories.message_repository import MessageRepository
 
 class ConversationService:
@@ -10,13 +11,16 @@ class ConversationService:
         self,
         conversation_repository: ConversationRepository,
         message_repository: MessageRepository,
+        conversation_document_repository: ConversationDocumentRepository
     ):
         self.conversation_repository = conversation_repository
         self.message_repository = message_repository
+        self.conversation_document_repository = conversation_document_repository
 
     async def create_conversation(
         self,
         title: str,
+        document_ids: list[str],
     ) -> Conversation:
         clean_title = title.strip() if title else "New Conversation"
 
@@ -25,7 +29,14 @@ class ConversationService:
             title=clean_title,
         )
 
-        return await self.conversation_repository.create(conversation)
+        conversation = await self.conversation_repository.create(conversation)
+
+        await self.attach_documents(
+        conversation.id,
+        document_ids,
+    )
+
+        return conversation
     
     async def get_conversation(
         self,
@@ -62,5 +73,23 @@ class ConversationService:
             return []
         
         return await self.message_repository.get_last_messages(
+            conversation_id
+        )
+    
+    async def attach_documents(
+        self,
+        conversation_id: str,
+        document_ids: list[str],
+    ) -> None:
+        await self.conversation_document_repository.add_documents(
+            conversation_id,
+            document_ids,
+        )
+    
+    async def get_document_ids(
+        self,
+        conversation_id: str,
+    ) -> list[str]:
+        return await self.conversation_document_repository.get_document_ids(
             conversation_id
         )
