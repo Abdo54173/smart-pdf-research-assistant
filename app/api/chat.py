@@ -26,6 +26,7 @@ async def ask_question(
     try:
         result = await chat_service.ask(
             conversation_id=request.conversation_id,
+            document_ids=request.document_ids,
             question=request.question,
         )
 

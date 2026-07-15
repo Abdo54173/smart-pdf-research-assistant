@@ -17,10 +17,20 @@ class ChatService:
 
     async def ask(
         self,
-        conversation_id: str,
+        conversation_id: str | None,
+        document_ids: list[str] | None,
         question: str,
         top_k: int = 5,
     ) -> dict:
+        
+        if conversation_id is None:
+
+            conversation = await self.conversation_service.create_conversation(
+                title="New Conversation",
+                document_ids=document_ids,
+            )
+
+            conversation_id = conversation.id
         
         if not question.strip():
             raise ValueError("Question cannot be empty.")
@@ -97,6 +107,7 @@ class ChatService:
         )
 
         return {
+            "conversation_id": conversation_id,
             "answer": answer,
             "sources": metadatas,
         }
