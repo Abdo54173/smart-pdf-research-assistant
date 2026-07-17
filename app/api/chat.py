@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.dependencies import get_chat_service
-from app.models.chat_models import ChatRequest, ChatResponse
+from app.models.Chat_models import ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
 
 router = APIRouter(
