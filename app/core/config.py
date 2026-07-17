@@ -25,9 +25,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL_NAME:str = "gpt-4.1-mini"
 
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    #POSTGRES_USER: str
+    #POSTGRES_PASSWORD: str
+    #POSTGRES_DB: str
 
     DATABASE_URL: str
 
