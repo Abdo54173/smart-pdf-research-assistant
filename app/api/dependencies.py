@@ -32,31 +32,14 @@ async def get_db():
 
 
 # -------------------------
-# Repositories
+# Singleton Services
 # -------------------------
 
-def get_document_repository(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> DocumentRepository:
-    return DocumentRepository(db)
-
-
-def get_conversation_repository(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> ConversationRepository:
-    return ConversationRepository(db)
-
-
-def get_message_repository(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> MessageRepository:
-    return MessageRepository(db)
-
-
-def get_conversation_document_repository(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> ConversationDocumentRepository:
-    return ConversationDocumentRepository(db)
+pdf_service = PDFService()
+pdf_parser_service = PDFParserService()
+chunking_service = ChunkingService()
+embedding_service = EmbeddingService()
+vector_store_service = VectorStoreService()
 
 
 # -------------------------
@@ -64,55 +47,47 @@ def get_conversation_document_repository(
 # -------------------------
 
 def get_document_service(
-    repository: Annotated[
-        DocumentRepository,
-        Depends(get_document_repository),
-    ],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> DocumentService:
-    return DocumentService(repository)
+    return DocumentService(
+        document_repository=DocumentRepository(db),
+    )
 
 
 def get_conversation_service(
-    conversation_repository: Annotated[
-        ConversationRepository,
-        Depends(get_conversation_repository),
-    ],
-    message_repository: Annotated[
-        MessageRepository,
-        Depends(get_message_repository),
-    ],
-    conversation_document_repository: Annotated[
-        ConversationDocumentRepository,
-        Depends(get_conversation_document_repository),
-    ],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ConversationService:
     return ConversationService(
-        conversation_repository=conversation_repository,
-        message_repository=message_repository,
-        conversation_document_repository=conversation_document_repository,
+        conversation_repository=ConversationRepository(db),
+        message_repository=MessageRepository(db),
+        conversation_document_repository=ConversationDocumentRepository(db),
     )
 
 
 def get_pdf_service() -> PDFService:
-    return PDFService()
+    return pdf_service
+
+
+def get_embedding_service() -> EmbeddingService:
+    return embedding_service
+
+
+def get_vector_store_service() -> VectorStoreService:
+    return vector_store_service
 
 
 def get_document_processing_service() -> DocumentProcessingService:
     return DocumentProcessingService(
-        pdf_parser_service=PDFParserService(),
-        chunking_service=ChunkingService(),
-        embedding_service=EmbeddingService(),
+        pdf_parser_service=pdf_parser_service,
+        chunking_service=chunking_service,
+        embedding_service=embedding_service,
     )
-
-
-def get_vector_store_service() -> VectorStoreService:
-    return VectorStoreService()
 
 
 def get_retriever_service(
     embedding_service: Annotated[
         EmbeddingService,
-        Depends(EmbeddingService),
+        Depends(get_embedding_service),
     ],
     vector_store_service: Annotated[
         VectorStoreService,
