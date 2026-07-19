@@ -67,12 +67,14 @@ async def upload_pdf(
         get_document_repository(db),
     )
 
-    document = await document_service.create_document(
-        filename=file.filename,
-        file_path=str(file_path),
-    )
-    
+    document = None
+
     try:
+        document = await document_service.create_document(
+            filename=file.filename,
+            file_path=str(file_path),
+        )
+
         processed_document = (
             document_processing_service.process_document(
                 file_path=file_path,
@@ -85,9 +87,11 @@ async def upload_pdf(
         )
 
     except Exception as e:
-        traceback.print_exc()
 
-        await document_service.delete_document(document.id)
+        if document is not None:
+            await document_service.delete_document(document.id)
+
+        pdf_service.delete_pdf(stored_filename)
 
         raise HTTPException(
             status_code=500,

@@ -49,3 +49,13 @@ class PDFService:
             file.write(content)
 
         return unique_filename
+    
+    def delete_pdf(
+        self,
+        stored_filename: str,
+    ) -> None:
+
+        file_path = Path(UPLOAD_DIR / stored_filename)
+
+        if file_path.exists():
+            file_path.unlink()
