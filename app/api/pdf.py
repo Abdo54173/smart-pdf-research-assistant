@@ -45,10 +45,16 @@ async def upload_pdf(
 ):
     content =await file.read()
 
-    pdf_service.validate_pdf(
-        filename=file.filename,
-        content=content,
-    )
+    try:
+        pdf_service.validate_pdf(
+            filename=file.filename,
+            content=content,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     stored_filename = pdf_service.save_pdf(
         filename=file.filename,

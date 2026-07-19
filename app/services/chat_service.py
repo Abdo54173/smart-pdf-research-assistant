@@ -1,7 +1,7 @@
 from app.core.prompts import SYSTEM_PROMPT, build_rag_prompt
 from app.services.retriever_service import RetrieverService
-from app.llms.factory import LLMFactory
 from app.services.conversation_service import ConversationService
+from app.llms.base import BaseLLM
 
 class ChatService:
 
@@ -9,11 +9,12 @@ class ChatService:
         self,
         retriever_service: RetrieverService,
         conversation_service: ConversationService,
+        llm: BaseLLM,
     ) -> None:
 
         self.retriever_service = retriever_service
         self.conversation_service = conversation_service
-        self.llm = LLMFactory.create()
+        self.llm = llm
 
     async def ask(
         self,

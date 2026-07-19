@@ -25,6 +25,9 @@ from app.services.document_processing_service import (
 from app.services.retriever_service import RetrieverService
 from app.services.chat_service import ChatService
 
+from app.llms.base import BaseLLM
+from app.llms.factory import LLMFactory
+
 
 async def get_db():
     async with AsyncSessionLocal() as session:
@@ -40,6 +43,7 @@ pdf_parser_service = PDFParserService()
 chunking_service = ChunkingService()
 embedding_service = EmbeddingService()
 vector_store_service = VectorStoreService()
+llm = LLMFactory.create()
 
 
 # -------------------------
@@ -99,6 +103,8 @@ def get_retriever_service(
         vector_store_service=vector_store_service,
     )
 
+def get_llm() -> BaseLLM:
+    return llm
 
 def get_chat_service(
     retriever_service: Annotated[
@@ -109,8 +115,13 @@ def get_chat_service(
         ConversationService,
         Depends(get_conversation_service),
     ],
+    llm: Annotated[
+        BaseLLM,
+        Depends(get_llm),
+    ],
 ) -> ChatService:
     return ChatService(
         retriever_service=retriever_service,
         conversation_service=conversation_service,
+        llm=llm,
     )
