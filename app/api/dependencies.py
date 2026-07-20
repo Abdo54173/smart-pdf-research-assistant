@@ -8,9 +8,8 @@ from app.database.session import AsyncSessionLocal
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.message_repository import MessageRepository
-from app.repositories.ConversationDocumentRepository import (
-    ConversationDocumentRepository,
-)
+from app.repositories.ConversationDocumentRepository import ConversationDocumentRepository
+from app.repositories.document_chunk_repository import DocumentChunkRepository
 
 from app.services.document_service import DocumentService
 from app.services.conversation_service import ConversationService
@@ -33,10 +32,7 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
 
-
-# -------------------------
 # Singleton Services
-# -------------------------
 
 pdf_service = PDFService()
 pdf_parser_service = PDFParserService()
@@ -45,10 +41,13 @@ embedding_service = EmbeddingService()
 vector_store_service = VectorStoreService()
 llm = LLMFactory.create()
 
-
-# -------------------------
-# Services
-# -------------------------
+def get_document_chunk_repository(
+    db: Annotated[
+        AsyncSession,
+        Depends(get_db),
+    ],
+) -> DocumentChunkRepository:
+    return DocumentChunkRepository(db)
 
 def get_document_service(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -76,8 +75,15 @@ def get_embedding_service() -> EmbeddingService:
     return embedding_service
 
 
-def get_vector_store_service() -> VectorStoreService:
-    return vector_store_service
+def get_vector_store_service(
+    document_chunk_repository: Annotated[
+        DocumentChunkRepository,
+        Depends(get_document_chunk_repository),
+    ],
+) -> VectorStoreService:
+    return VectorStoreService(
+        document_chunk_repository=document_chunk_repository,
+    )
 
 
 def get_document_processing_service() -> DocumentProcessingService:

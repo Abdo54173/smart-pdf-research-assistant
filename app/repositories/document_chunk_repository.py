@@ -37,6 +37,39 @@ class DocumentChunkRepository:
         )
         return list(result.scalars().all())
     
+    async def search(
+        self,
+        document_id: str,
+        query_embedding: list[float],
+        top_k: int,
+    ) -> list[dict]:
+
+        result = await self.db.execute(
+            select(
+                DocumentChunk,
+                DocumentChunk.embedding.cosine_distance(
+                    query_embedding
+                ).label("distance"),
+            )
+            .where(
+                DocumentChunk.document_id == document_id
+            )
+            .order_by("distance")
+            .limit(top_k)
+        )
+    
+        return [
+            {
+                "text": chunk.content,
+                "metadata": {
+                    "document_id": chunk.document_id,
+                    "page": chunk.page_number,
+                },
+                "distance": distance,
+            }
+            for chunk, distance in result.all()
+        ]
+    
     async def delete_by_document_id(
         self,
         document_id: UUID,

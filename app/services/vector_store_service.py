@@ -1,72 +1,65 @@
 import logging
-from chromadb import PersistentClient
-from app.core.config import VECTOR_DB_DIR, settings
+
+from app.entities.document_chunk import DocumentChunk
+from app.repositories.document_chunk_repository import DocumentChunkRepository
 
 logger = logging.getLogger(__name__)
 
 class VectorStoreService:
 
-    def __init__(self) -> None:
-        self.client = PersistentClient(path=str(VECTOR_DB_DIR))
-        self.collection = self.client.get_or_create_collection(
-            name=settings.CHROMA_COLLECTION_NAME
-        )
+    def __init__(
+        self,
+        document_chunk_repository: DocumentChunkRepository,
+    ) -> None:
+        self.document_chunk_repository = document_chunk_repository
     
-    def add_chunks(
+    async def add_chunks(
         self,
         document_id: str,
-        chunks: list[dict]
+        chunks: list[dict],
     ) -> None:
-        
+
         if not chunks:
             logger.warning("No chunks provided to save in Vector Store.")
             return
 
-        self.collection.add(
-            
-            ids=[
-                f"{document_id}_chunk_{chunk['chunk_id']}"
-                for chunk in chunks
-            ],
-            documents=[
-                chunk["text"]
-                for chunk in chunks
-            ],
-            embeddings=[
-                chunk["embedding"]
-                for chunk in chunks
-            ],
-            
-            metadatas=[
-                {
-                    "document_id": document_id,
-                    "page": chunk["page"],
-                    "tokens_count": chunk["tokens_count"],
-                }
-                for chunk in chunks
-            ],
-        )
-        logger.info(f"Successfully stored {len(chunks)} chunks for document_id: {document_id}")
+        document_chunks = [
+            DocumentChunk(
+                document_id=document_id,
+                chunk_index=chunk["chunk_id"],
+                page_number=chunk["page"],
+                content=chunk["text"],
+                embedding=chunk["embedding"],
+            )
+            for chunk in chunks
+        ]
 
-    def search(
+        await self.document_chunk_repository.create_many(
+            document_chunks
+        )
+
+        logger.info(
+            f"Successfully stored {len(chunks)} chunks for document_id: {document_id}"
+        )
+
+    async def search(
         self,
         document_ids: list[str],
         query_embedding: list[float],
         top_k: int = 5,
-    ) -> dict:
+    ):
 
-        return self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            where={
-                "document_id": {
-                    "$in": document_ids,
-                }
-            },
-            include=[
-                "documents",
-                "metadatas",
-                "distances",
-            ],
-        )
+        results = []
+
+        for document_id in document_ids:
+            chunks = await self.document_chunk_repository.search(
+                document_id=document_id,
+                query_embedding=query_embedding,
+                top_k=top_k,
+            )
+            results.extend(chunks)
+
+        results.sort(key=lambda x: x["distance"])
+
+        return results[:top_k]
     
