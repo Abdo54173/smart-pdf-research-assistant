@@ -1,11 +1,11 @@
 from uuid import uuid4
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ForeignKey, Integer, Text
+from sqlalchemy import ForeignKey, Integer, Text, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base
+from app.database.base import Base
 
 
 class DocumentChunk(Base):
@@ -18,7 +18,7 @@ class DocumentChunk(Base):
     )
 
     document_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True),
+        String,
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

@@ -15,6 +15,7 @@ from app.entities.document import Document
 from app.entities.conversation import Conversation
 from app.entities.message import Message
 from app.entities.conversation_document import ConversationDocument
+from app.entities.document_chunk import DocumentChunk
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -75,6 +76,9 @@ def run_migrations_online() -> None:
     connectable = create_async_engine(
         connection_url,
         poolclass=pool.NullPool,
+        connect_args={
+            "statement_cache_size": 0
+        }
     )
 
     def do_run_migrations(connection):
