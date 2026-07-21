@@ -1,14 +1,10 @@
 from pathlib import Path
 from typing import Annotated
-import traceback
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
-    get_db,
     get_document_processing_service,
-    get_document_repository,
     get_document_service,
     get_pdf_service,
     get_vector_store_service,
@@ -29,7 +25,10 @@ router = APIRouter(
 @router.post("/upload", response_model=UploadResponse)
 async def upload_pdf(
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
+    document_service: Annotated[
+        DocumentService,
+        Depends(get_document_service),
+    ] = None,
     pdf_service: Annotated[
         PDFService,
         Depends(get_pdf_service),
@@ -63,10 +62,6 @@ async def upload_pdf(
 
     file_path = Path(UPLOAD_DIR / stored_filename)
 
-    document_service = DocumentService(
-        get_document_repository(db),
-    )
-
     document = None
 
     try:
@@ -75,13 +70,11 @@ async def upload_pdf(
             file_path=str(file_path),
         )
 
-        processed_document = (
-            document_processing_service.process_document(
+        processed_document = document_processing_service.process_document(
                 file_path=file_path,
             )
-        )
 
-        vector_store_service.add_chunks(
+        await vector_store_service.add_chunks(
             document_id=str(document.id),
             chunks=processed_document.chunks,
         )
