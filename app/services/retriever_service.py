@@ -12,7 +12,7 @@ class RetrieverService:
         self.embedding_service = embedding_service
         self.vector_store_service = vector_store_service
 
-    def retrieve(
+    async def retrieve(
         self,
         document_ids: list[str],
         query: str,
@@ -21,7 +21,7 @@ class RetrieverService:
 
         query_embedding = self.embedding_service.embed_text(query)
 
-        return self.vector_store_service.search(
+        return await self.vector_store_service.search(
             document_ids=document_ids,
             query_embedding=query_embedding,
             top_k=top_k,

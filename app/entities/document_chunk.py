@@ -17,7 +17,7 @@ class DocumentChunk(Base):
         default=uuid4,
     )
 
-    document_id: Mapped[UUID] = mapped_column(
+    document_id: Mapped[str] = mapped_column(
         String,
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,

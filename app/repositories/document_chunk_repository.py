@@ -23,8 +23,10 @@ class DocumentChunkRepository:
         self,
         chunks: list[DocumentChunk],
     ) -> None:
+        
         self.db.add_all(chunks)
         await self.db.flush()
+        await self.db.commit()
 
     async def get_by_document_id(
         self,

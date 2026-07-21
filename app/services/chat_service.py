@@ -52,23 +52,20 @@ class ChatService:
             conversation_id
         )
 
-        retrieval_result = self.retriever_service.retrieve(
+        retrieval_result = await self.retriever_service.retrieve(
             document_ids=document_ids,
             query=question,
             top_k=top_k,
         )
 
-        if (
-            not retrieval_result.get("documents")
-            or not retrieval_result["documents"][0]
-        ):
+        if not retrieval_result:
             return {
                 "answer": "I could not find that information in the uploaded documents.",
                 "sources": [],
             }
 
-        documents = retrieval_result["documents"][0]
-        metadatas = retrieval_result["metadatas"][0]
+        documents = [item["text"] for item in retrieval_result]
+        metadatas = [item["metadata"] for item in retrieval_result]
 
         context = "\n\n".join(documents)
 

@@ -23,16 +23,19 @@ class VectorStoreService:
             logger.warning("No chunks provided to save in Vector Store.")
             return
 
-        document_chunks = [
-            DocumentChunk(
+        document_chunks = []
+
+        for chunk in chunks:
+
+            document_chunk = DocumentChunk(
                 document_id=document_id,
                 chunk_index=chunk["chunk_id"],
                 page_number=chunk["page"],
                 content=chunk["text"],
                 embedding=chunk["embedding"],
             )
-            for chunk in chunks
-        ]
+
+            document_chunks.append(document_chunk)
 
         await self.document_chunk_repository.create_many(
             document_chunks
