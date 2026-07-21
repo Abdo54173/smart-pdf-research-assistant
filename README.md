@@ -43,41 +43,54 @@ This project was intentionally implemented without relying on high-level RAG fra
 
 # 🏛 Software Architecture
 
-The backend follows a **Layered Architecture** with explicit separation between presentation, business logic, persistence, and infrastructure.
+The backend follows a **Layered Architecture** with clear separation between the presentation, business, persistence, and infrastructure layers. Business logic is encapsulated within services, while all database interactions are delegated to repositories, ensuring loose coupling and maintainable boundaries.
 
 ```mermaid
 graph TD
 
-A[Client]
+    A[Client] --> B[FastAPI Router]
 
-A --> B[FastAPI Router]
+    B --> C[Service Layer]
 
-B --> C[Service Layer]
+    %% Business Services
+    C --> D[Chat Service]
+    C --> E[Document Service]
+    C --> F[Conversation Service]
+    C --> G[PDF Service]
 
-C --> D[Repository Layer]
+    %% Document Processing Pipeline
+    G --> H[Document Processing Service]
+    H --> I[PDF Parser Service]
+    H --> J[Chunking Service]
+    H --> K[Embedding Service]
 
-D --> E[(PostgreSQL + pgvector)]
+    %% Retrieval Pipeline
+    D --> L[Retriever Service]
+    L --> M[Vector Store Service]
 
-C --> F[Document Processing]
+    %% LLM Abstraction
+    D --> N[LLM Factory]
+    N --> O[Groq]
+    N --> P[OpenAI]
 
-F --> G[Chunking]
+    %% Persistence
+    D --> Q[Repository Layer]
+    E --> Q
+    F --> Q
+    G --> Q
+    M --> Q
 
-G --> H[Embedding Service]
-
-C --> I[Retriever Service]
-
-I --> E
-
-C --> J[Conversation Service]
-
-C --> K[LLM Factory]
-
-K --> L[Groq]
-
-K --> M[OpenAI]
+    Q --> R[(PostgreSQL + pgvector)]
 ```
 
-Each layer owns a single responsibility, reducing coupling while improving maintainability, extensibility, and testability.
+Each layer has a well-defined responsibility:
+
+- **Presentation Layer** handles HTTP requests and delegates work to the application services.
+- **Service Layer** contains the business logic and orchestrates document processing, retrieval, conversations, and LLM interactions.
+- **Repository Layer** abstracts all persistence operations, preventing business logic from depending on database implementations.
+- **Infrastructure Layer** provides vector storage through **PostgreSQL + pgvector**, enabling efficient semantic search while remaining transparent to the business layer.
+
+This separation of concerns improves maintainability, testability, scalability, and makes individual components easy to replace or extend without affecting the rest of the system.
 
 ---
 
