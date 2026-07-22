@@ -65,7 +65,21 @@ class ChatService:
             }
 
         documents = [item["text"] for item in retrieval_result]
-        metadatas = [item["metadata"] for item in retrieval_result]
+
+        seen = set()
+        metadatas = []
+
+        for item in retrieval_result:
+            metadata = item["metadata"]
+
+            key = (
+                metadata["document_id"],
+                metadata["page"],
+            )
+
+            if key not in seen:
+                seen.add(key)
+                metadatas.append(metadata)
 
         context = "\n\n".join(documents)
 
@@ -107,5 +121,11 @@ class ChatService:
         return {
             "conversation_id": conversation_id,
             "answer": answer,
-            "sources": metadatas,
+            "sources": [
+                {
+                    "document_name": metadata["document_name"],
+                    "page": metadata["page"],
+                }
+                for metadata in metadatas
+            ],
         }

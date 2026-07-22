@@ -24,6 +24,11 @@ class DocumentChunk(Base):
         index=True,
     )
 
+    document_name: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+
     chunk_index: Mapped[int] = mapped_column(
         Integer,
         nullable=False,

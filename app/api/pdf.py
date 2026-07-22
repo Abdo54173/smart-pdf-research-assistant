@@ -8,6 +8,7 @@ from app.api.dependencies import (
     get_document_service,
     get_pdf_service,
     get_vector_store_service,
+    get_conversation_service,
 )
 from app.core.config import UPLOAD_DIR
 from app.models.pdf_models import UploadResponse
@@ -15,6 +16,7 @@ from app.services.document_processing_service import DocumentProcessingService
 from app.services.document_service import DocumentService
 from app.services.pdf_service import PDFService
 from app.services.vector_store_service import VectorStoreService
+from app.services.conversation_service import ConversationService
 
 router = APIRouter(
     prefix="/pdf",
@@ -41,6 +43,10 @@ async def upload_pdf(
         VectorStoreService,
         Depends(get_vector_store_service),
     ] = None,
+    conversation_service: Annotated[
+        ConversationService,
+        Depends(get_conversation_service),
+    ] = None,
 ):
     content =await file.read()
 
@@ -63,11 +69,16 @@ async def upload_pdf(
     file_path = Path(UPLOAD_DIR / stored_filename)
 
     document = None
+    conversation = None
 
     try:
         document = await document_service.create_document(
             filename=file.filename,
             file_path=str(file_path),
+        )
+        conversation = await conversation_service.create_conversation(
+            title=Path(file.filename).stem,
+            document_ids=[str(document.id)],
         )
 
         processed_document = document_processing_service.process_document(
@@ -76,6 +87,7 @@ async def upload_pdf(
 
         await vector_store_service.add_chunks(
             document_id=str(document.id),
+            document_name=document.filename,
             chunks=processed_document.chunks,
         )
 
@@ -93,6 +105,7 @@ async def upload_pdf(
 
     return UploadResponse(
         document_id=document.id,
+        conversation_id=conversation.id,
         original_filename=file.filename,
         stored_filename=stored_filename,
         message="PDF uploaded and indexed successfully",

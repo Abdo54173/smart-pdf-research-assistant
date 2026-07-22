@@ -15,6 +15,10 @@ Follow these rules:
 "I could not find that information in the uploaded documents."
 5. If the retrieved excerpts contain only part of the answer, answer only that part and clearly mention that the remaining information is unavailable.
 6. Keep answers concise, objective, and well formatted using Markdown.
+7. Do not use Markdown.
+8. Do not use bullet points unless the user explicitly requests a list.
+9. Do not use headings.
+10. Write in clear, natural language.
 """.strip()
 
 def build_rag_prompt(question: str, context: str) -> str:

@@ -65,6 +65,7 @@ class DocumentChunkRepository:
                 "text": chunk.content,
                 "metadata": {
                     "document_id": chunk.document_id,
+                    "document_name": chunk.document_name,
                     "page": chunk.page_number,
                 },
                 "distance": distance,

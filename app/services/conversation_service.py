@@ -1,4 +1,5 @@
 from uuid import uuid4
+from pathlib import Path
 
 from app.entities.conversation import Conversation
 from app.entities.message import Message
@@ -22,7 +23,11 @@ class ConversationService:
         title: str,
         document_ids: list[str],
     ) -> Conversation:
-        clean_title = title.strip() if title else "New Conversation"
+        clean_title = (
+            Path(title).stem.strip()
+            if title and title.strip()
+            else "New Conversation"
+        )
 
         conversation = Conversation(
             id=str(uuid4()),

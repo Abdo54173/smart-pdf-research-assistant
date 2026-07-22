@@ -16,6 +16,7 @@ class VectorStoreService:
     async def add_chunks(
         self,
         document_id: str,
+        document_name: str,
         chunks: list[dict],
     ) -> None:
 
@@ -30,6 +31,7 @@ class VectorStoreService:
             document_chunk = DocumentChunk(
                 document_id=document_id,
                 chunk_index=chunk["chunk_id"],
+                document_name=document_name,
                 page_number=chunk["page"],
                 content=chunk["text"],
                 embedding=chunk["embedding"],
